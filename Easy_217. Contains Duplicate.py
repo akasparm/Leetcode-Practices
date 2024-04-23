@@ -1,8 +1,8 @@
-nums = [1,5,-2,-4,0]
-nums_set = set(nums)
-nums.sort()
-nums_og_sorted = list(nums_set)
-nums_og_sorted.sort()
-if nums_og_sorted == nums:
-    print(False)
-print(True)
+nums = [-2,1,-3,4,-1,2,1,-5,4]
+max_current = max_global = nums[0]
+for num in nums[1:]:
+    print("Num: ", num)
+    print("before: ",max_current, max_global)
+    max_current = max(num, max_current + num)
+    max_global = max(max_global, max_current)
+    print("After: ",max_current, max_global)
