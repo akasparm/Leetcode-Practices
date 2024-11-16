@@ -145,25 +145,28 @@ if __name__== "__main__":
     
     IntensityManager = IntensityBySegments()
 
-    IntensityManager.set(20, 50, 1)
+    IntensityManager.set(-20, 0, 3)
     print("Displayed Result: ", IntensityManager.segments)
 
-    IntensityManager.add(20, 60, 1)
+    IntensityManager.add(10, 30, 3)
     print("Displayed Result: ", IntensityManager.segments)
     
-    IntensityManager.add(30, 70, -4)
+    IntensityManager.add(20, 40, 1)
     print("Displayed Result: ", IntensityManager.segments)
     
-    IntensityManager.set(-20, 50, 1)
+    IntensityManager.set(20, 50, 5)
     print("Displayed Result: ", IntensityManager.segments)
     
-    IntensityManager.add(40, 90, -4)
+    IntensityManager.add(50, 80, -2)
     print("Displayed Result: ", IntensityManager.segments) 
     
-    IntensityManager.add(100, 120, 9)
+    IntensityManager.set(70, 90, 5)
     print("Displayed Result: ", IntensityManager.segments)
     
-    IntensityManager.set(60, 100, 1)
+    IntensityManager.set(100, 130, -5)
+    print("Displayed Result: ", IntensityManager.segments)
+    
+    IntensityManager.add(0, 40, -20)
     print("Displayed Result: ", IntensityManager.segments)
 
                     
