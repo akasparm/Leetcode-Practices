@@ -1,2 +1,2 @@
-
-    IntensityManager.set(100, 120, 8)
+0, 1)
+    # print("Displayed Result: ",

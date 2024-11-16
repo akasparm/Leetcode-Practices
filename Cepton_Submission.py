@@ -53,70 +53,55 @@ class IntensityBySegments:
     def add(self, start, end, amount):
         """
         Add intensity for the range [start, end) with the given amount.
-        Avoids duplicates and ensures the specified range is updated correctly.
-
-        Args:
-            start (_type_): _description_
-            end (_type_): _description_
-            amount (_type_): _description_
+        Merges the new segment into the `changes` dictionary directly.
         """
-        
-        self.changes[start] = self.changes.get(start, 0) + amount
-        # Fetch the previous value at the boundary `end` or default to 0
-        previous_value = next((value for point, value in self.segments if point == end), 0)
+        # print("Changes before addition:", self.changes)
 
-        # Adjust the `end` boundary by subtracting the amount
-        self.changes[end] = previous_value - amount
-        
-        # Start building the new segments list
-        new_segments = []
-        running_intensity = 0
+        # Merge the start point
+        if start in self.changes:
+            self.changes[start] += amount  # Add the value to the existing entry
+        else:
+            self.changes[start] = amount  # Add new entry for `start`
 
-        sorted_points = sorted([[key, value] for key, value in self.changes.items()])
-        
-        new_segments = []
-        running_intensity = 0
-        
-        for point, value in sorted_points:
-            running_intensity += value
-            if not new_segments or new_segments[-1][1] != running_intensity:
-                new_segments.append([point, running_intensity])
-                
-        
-        merged_segments = []
-        i, j = 0, 0
-                
-        while i < len(self.segments) and j < len(new_segments):
-            if self.segments[i][0] < new_segments[j][0]:
-                merged_segments.append(self.segments[i])
-                i += 1
-                
-            elif self.segments[i][0] > new_segments[j][0]:
-                merged_segments.append(new_segments[j])
-                j += 1
-                
+        # Merge the end point
+        if end not in self.changes:
+            self.changes[end] = 0  # Add the value to the existing entry
+            
+        # Step 3: Update at intervals of 10
+        current = start + 10
+        while current < end:
+            if current in self.changes:
+                self.changes[current] += amount  # Update existing entry
             else:
-                merged_segments.append(new_segments[j])
-                i += 1
-                j += 1
-                
-        merged_segments.extend(self.segments[i:])
-        merged_segments.extend(new_segments[j:])
+                self.changes[current] = amount  # Add new entry for the interval
+            current += 10
+            
+        # print("Dict after adding the intervals: ", self.changes)
         
-        self.segments = merged_segments
+        ## Convert to segment format
+        all_segments = [[key, self.changes[key]] for key in sorted(self.changes.keys())]
+
+        # Filter segments to only include points where values change
+        filtered_segments = []
+        for i, segment in enumerate(all_segments):
+            if i == 0 or segment[1] != all_segments[i - 1][1]:
+                filtered_segments.append(segment)
+
+        self.segments = filtered_segments
+
         
         
     def set(self, start, end, amount):
         """
         Set intensity for the range [start, end) to a specific value.
         Overwrites the specified range while retaining unaffected segments.
-        Ensures no duplicate boundaries are created.
+        Updates only the existing keys in `changes` and adds new ones from `new_segments`.
         """
-        # Update changes dictionary to reflect the new range
+        # Update the changes dictionary for the new range
         self.changes[start] = amount
         previous_value = next((value for point, value in self.segments if point == end), 0)
         self.changes[end] = previous_value  
-
+        
         # Start building a new segments list
         new_segments = []
 
@@ -147,28 +132,38 @@ class IntensityBySegments:
         # Update the segments with filtered values
         self.segments = filtered_segments
 
+        # Step 3: Update at intervals of 10
+        current = start + 10
+        while current < end:
+            self.changes[current] = amount  # Update existing entry
+            current += 10
+
+
 
         
 if __name__== "__main__":
     
     IntensityManager = IntensityBySegments()
 
-    IntensityManager.add(20, 40, 1)
-    print(IntensityManager.segments)
+    IntensityManager.set(20, 50, 1)
+    print("Displayed Result: ", IntensityManager.segments)
+
+    IntensityManager.add(20, 60, 1)
+    print("Displayed Result: ", IntensityManager.segments)
     
-    IntensityManager.add(60, 90, 1)
-    print(IntensityManager.segments)
+    IntensityManager.add(30, 70, -4)
+    print("Displayed Result: ", IntensityManager.segments)
     
-    IntensityManager.set(50, 120, 8)
-    print(IntensityManager.segments)
+    IntensityManager.set(-20, 50, 1)
+    print("Displayed Result: ", IntensityManager.segments)
     
-    IntensityManager.add(-10, 60, -5)
-    print(IntensityManager.segments)
+    IntensityManager.add(40, 90, -4)
+    print("Displayed Result: ", IntensityManager.segments) 
     
-    IntensityManager.set(0, 10, -5)
-    print(IntensityManager.segments)
+    IntensityManager.add(100, 120, 9)
+    print("Displayed Result: ", IntensityManager.segments)
     
-    
-    
+    IntensityManager.set(60, 100, 1)
+    print("Displayed Result: ", IntensityManager.segments)
 
                     
