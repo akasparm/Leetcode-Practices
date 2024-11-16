@@ -9,67 +9,46 @@ class IntensityManager:
     def add(self, start, end, amount):
         """
         Add intensity for the range [start, end) with the given amount.
-        Avoids duplicates and ensures the specified range is updated correctly.
+        Ensures the specified range is updated while retaining unaffected segments.
         """
         # Update changes for the range
         self.changes[start] = self.changes.get(start, 0) + amount
         self.changes[end] = self.changes.get(end, 0) - amount
 
-        # Start building the new segments list
+        # Create a sorted list of points with their changes
+        sorted_points = sorted([[key, value] for key, value in self.changes.items()])
+
+        # Build the new segments with cumulative intensity
         new_segments = []
         running_intensity = 0
 
-        # Sort the keys
-        sorted_points = sorted(self.changes.keys())
-
-        for i, point in enumerate(sorted_points):
-            # Update running intensity
-            running_intensity += self.changes[point]
-
-            # Add the current point to new_segments
-            if not new_segments or new_segments[-1][0] != point:  # Avoid duplicates
+        for point, value in sorted_points:
+            running_intensity += value
+            if not new_segments or new_segments[-1][1] != running_intensity:
                 new_segments.append([point, running_intensity])
 
-        # Merge with previous segments to retain non-zero values outside the range
+        # Merge the new segments with existing segments
         merged_segments = []
-        existing_index = 0
+        i, j = 0, 0
 
-        for segment in new_segments:
-            point, value = segment
+        while i < len(self.segments) and j < len(new_segments):
+            if self.segments[i][0] < new_segments[j][0]:
+                merged_segments.append(self.segments[i])
+                i += 1
+            elif self.segments[i][0] > new_segments[j][0]:
+                merged_segments.append(new_segments[j])
+                j += 1
+            else:
+                merged_segments.append(new_segments[j])
+                i += 1
+                j += 1
 
-            # Add all previous segments that occur before the current point
-            while existing_index < len(self.segments) and self.segments[existing_index][0] < point:
-                prev_point, prev_value = self.segments[existing_index]
-                if prev_value != 0 and (not merged_segments or merged_segments[-1][0] != prev_point):
-                    merged_segments.append([prev_point, prev_value])
-                existing_index += 1
+        # Add remaining segments from either list
+        merged_segments.extend(self.segments[i:])
+        merged_segments.extend(new_segments[j:])
 
-            # Add the current segment
-            if value != 0 and (not merged_segments or merged_segments[-1][0] != point):
-                merged_segments.append([point, value])
-
-        # Add any remaining previous segments
-        while existing_index < len(self.segments):
-            prev_point, prev_value = self.segments[existing_index]
-            if prev_value != 0 and (not merged_segments or merged_segments[-1][0] != prev_point):
-                merged_segments.append([prev_point, prev_value])
-            existing_index += 1
-
-        # Ensure the last boundary is included
-        if len(self.segments) > 0 and self.segments[-1][1] == 0:
-            last_boundary = self.segments[-1]
-            if merged_segments[-1][0] != last_boundary[0]:
-                merged_segments.append(last_boundary)
-
-        # Remove duplicates explicitly
-        final_segments = []
-        for i, segment in enumerate(merged_segments):
-            if i == 0 or segment != merged_segments[i - 1]:
-                final_segments.append(segment)
-
-        # Update self.segments
-        self.segments = final_segments
-
+        # Update the segments list
+        self.segments = merged_segments
 
 
     def set(self, start, end, amount):
